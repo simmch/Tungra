@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -19,7 +19,12 @@ const TungraDashboard = () => {
   const [aiResponse, setAiResponse] = useState('');
   const [isAiSearching, setIsAiSearching] = useState(false);
   const [aiError, setAiError] = useState('');
-
+  const topRef = useRef(null);
+  const bottomRef = useRef(null);
+  
+  const scrollToTop = () => topRef.current.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = () => bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+  
   useEffect(() => {
     fetchLoreEntries();
   }, []);
@@ -28,7 +33,9 @@ const TungraDashboard = () => {
     try {
       const response = await fetch('/api/lore');
       const data = await response.json();
-      setLoreEntries(data);
+      // Sort entries by timestamp, newest first
+      const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      setLoreEntries(sortedData);
     } catch (error) {
       console.error('Error fetching lore entries:', error);
     }
@@ -209,6 +216,24 @@ const TungraDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+      <div ref={topRef} />
+      <div className="fixed bottom-4 right-4 flex flex-col space-y-2 z-10">
+        <button
+          onClick={scrollToTop}
+          className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
+          aria-label="Scroll to top"
+        >
+          ↑
+        </button>
+        <button
+          onClick={scrollToBottom}
+          className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
+          aria-label="Scroll to bottom"
+        >
+          ↓
+        </button>
+      </div>
+      
       <div className="max-w-7xl mx-auto">
         <h1 className="text-4xl font-extrabold text-center text-indigo-900 dark:text-indigo-300 mb-12">Tungra Lore Dashboard</h1>
         
@@ -274,6 +299,7 @@ const TungraDashboard = () => {
               {isAiSearching ? 'Thinking...' : 'Ask AI'}
             </button>
           </div>
+          {aiError && <p className="text-red-500 mt-2">{aiError}</p>}
         </div>
         
         {isSearching && (
@@ -302,7 +328,7 @@ const TungraDashboard = () => {
         )}
   
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <motion.div 
               className="bg-white dark:bg-gray-800 p-8 rounded-xl max-w-md w-full"
               initial={{ scale: 0.9, opacity: 0 }}
@@ -332,6 +358,7 @@ const TungraDashboard = () => {
           </div>
         )}
       </div>
+      <div ref={bottomRef} />
     </div>
   );
 };
