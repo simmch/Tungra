@@ -146,37 +146,64 @@ const TungraDashboard = () => {
       whileHover={{ scale: 1.02 }}
       transition={{ type: "spring", stiffness: 300 }}
     >
-      <h3 className="text-2xl font-bold mb-2 text-indigo-700 dark:text-indigo-300">{entry.original_title}</h3>
-      <p className="text-gray-600 dark:text-gray-300 mb-4">{truncateText(entry.original_description, 50)}</p>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-        Added by: {entry.writer} on {new Date(entry.timestamp).toLocaleString()}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {entry.original_description.split(' ').length > 50 && (
-          <Link 
-            to={`/lore/${entry._id}`}
-            className="px-4 py-2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-colors duration-300"
-          >
-            View More
-          </Link>
-        )}
-        <button 
-          onClick={() => {
-            setEditingId(entry._id);
-            setEditTitle(entry.original_title);
-            setEditDescription(entry.original_description);
-          }}
-          className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-300"
-        >
-          Edit
-        </button>
-        <button 
-          onClick={() => handleDeleteConfirmation(entry._id)}
-          className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-300"
-        >
-          Delete
-        </button>
-      </div>
+      {editingId === entry._id ? (
+        <form onSubmit={(e) => { e.preventDefault(); handleEdit(entry._id); }} className="space-y-4">
+          <input
+            type="text"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+          />
+          <textarea
+            value={editDescription}
+            onChange={(e) => setEditDescription(e.target.value)}
+            className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            rows={4}
+          />
+          <div className="flex gap-2">
+            <button type="submit" className="px-4 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors duration-300">
+              Save
+            </button>
+            <button onClick={() => setEditingId(null)} className="px-4 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors duration-300">
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <h3 className="text-2xl font-bold mb-2 text-indigo-700 dark:text-indigo-300">{entry.original_title}</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">{truncateText(entry.original_description, 50)}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Added by: {entry.writer} on {new Date(entry.timestamp).toLocaleString()}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {entry.original_description.split(' ').length > 50 && (
+              <Link 
+                to={`/lore/${entry._id}`}
+                className="px-4 py-2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition-colors duration-300"
+              >
+                View More
+              </Link>
+            )}
+            <button 
+              onClick={() => {
+                setEditingId(entry._id);
+                setEditTitle(entry.original_title);
+                setEditDescription(entry.original_description);
+              }}
+              className="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-300"
+            >
+              Edit
+            </button>
+            <button 
+              onClick={() => handleDeleteConfirmation(entry._id)}
+              className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-300"
+            >
+              Delete
+            </button>
+          </div>
+        </>
+      )}
     </motion.div>
   );
 
