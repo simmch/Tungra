@@ -12,7 +12,7 @@ const router = express.Router();
 async function generateEmbedding(text) {
   try {
     const response = await axios.post(
-      "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2",
+      "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-mpnet-base-v2",
       { inputs: text },
       {
         headers: { Authorization: `Bearer ${process.env.HF_TOKEN}` }
@@ -37,7 +37,7 @@ router.post('/ai-search', async (req, res) => {
             index: "DndSemanticSearch",
             path: "plot_embedding_hf",
             queryVector: queryEmbedding,
-            numCandidates: 100,
+            numCandidates: 150,
             limit: 5
           }
         },
