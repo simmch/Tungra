@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
-const TungraDashboard = () => {
+const TungraDashboard = ({ user }) => {
   const [loreEntries, setLoreEntries] = useState([]);
   const [newLoreTitle, setNewLoreTitle] = useState('');
   const [newLoreDescription, setNewLoreDescription] = useState('');
@@ -26,12 +26,27 @@ const TungraDashboard = () => {
   const scrollToBottom = () => bottomRef.current.scrollIntoView({ behavior: 'smooth' });
   
   useEffect(() => {
-    fetchLoreEntries();
-  }, []);
+    if (user.role === 'ADMIN') {
+      fetchLoreEntries();
+    }
+  }, [user.role]);
 
   const fetchLoreEntries = async () => {
     try {
-      const response = await fetch('/api/lore');
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+    
+      // Make the fetch request with the Authorization header
+      const response = await fetch('/api/lore', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       // Sort entries by timestamp, newest first
       const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -42,12 +57,21 @@ const TungraDashboard = () => {
   };
 
   const handleAiSearch = async () => {
+    const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+
     setIsAiSearching(true);
     setAiError('');
     try {
-      const response = await axios.post('/api/ai-search', {
-        query: aiQuery
-      });
+      const response = await axios.post(
+        '/api/ai-search', 
+        { query: aiQuery },  // Request body
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',  // Optionally specify content type
+          }
+        }
+      );
       setAiResponse(response.data.answer);
     } catch (error) {
       console.error('Error querying AI:', error);
@@ -57,13 +81,16 @@ const TungraDashboard = () => {
   };
 
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
       const response = await fetch('/api/lore', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({
           title: newLoreTitle,
           description: newLoreDescription,
@@ -87,9 +114,12 @@ const TungraDashboard = () => {
       return;
     }
     try {
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
       const response = await fetch('/api/lore/search', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' },
         body: JSON.stringify({ query: searchQuery })
       });
       const data = await response.json();
@@ -108,8 +138,13 @@ const TungraDashboard = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+
       const response = await fetch(`/api/lore/${deleteId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         setLoreEntries(loreEntries.filter(entry => entry._id !== deleteId));
@@ -124,9 +159,14 @@ const TungraDashboard = () => {
 
   const handleEdit = async (id) => {
     try {
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+
       const response = await fetch(`/api/lore/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({ title: editTitle, description: editDescription }),
       });
       if (response.ok) {
@@ -214,29 +254,30 @@ const TungraDashboard = () => {
     </motion.div>
   );
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
-      <div ref={topRef} />
-      <div className="fixed bottom-4 right-4 flex flex-col space-y-2 z-10">
-        <button
-          onClick={scrollToTop}
-          className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
-          aria-label="Scroll to top"
-        >
-          ↑
-        </button>
-        <button
-          onClick={scrollToBottom}
-          className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
-          aria-label="Scroll to bottom"
-        >
-          ↓
-        </button>
-      </div>
+return (
+  <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-200">
+    <div ref={topRef} />
+    <div className="fixed bottom-4 right-4 flex flex-col space-y-2 z-10">
+      <button
+        onClick={scrollToTop}
+        className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
+        aria-label="Scroll to top"
+      >
+        ↑
+      </button>
+      <button
+        onClick={scrollToBottom}
+        className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
+        aria-label="Scroll to bottom"
+      >
+        ↓
+      </button>
+    </div>
+    
+    <div className="max-w-7xl mx-auto">
+      <h1 className="text-4xl font-extrabold text-center text-indigo-900 dark:text-indigo-300 mb-12">Tungra Lore Dashboard</h1>
       
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-center text-indigo-900 dark:text-indigo-300 mb-12">Tungra Lore Dashboard</h1>
-        
+      {(user.role === 'ADMIN' || user.role === 'EDITOR') && (
         <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
           <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Add New Lore</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -259,108 +300,117 @@ const TungraDashboard = () => {
             </button>
           </form>
         </div>
-        
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
-          <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Search Lore</h2>
-          <div className="flex gap-4 mb-4">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (e.target.value === '') {
-                  setIsSearching(false);
-                  setSearchResults([]);
-                }
-              }}
-              placeholder="Search Lore"
-              className="flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            />
-            <button 
-              onClick={handleSearch} 
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
-            >
-              Search
-            </button>
-          </div>
-          <div className="flex gap-4">
-            <input
-              type="text"
-              value={aiQuery}
-              onChange={(e) => setAiQuery(e.target.value)}
-              placeholder="Ask AI about the lore"
-              className="flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            />
-            <button 
-              onClick={handleAiSearch} 
-              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
-              disabled={isAiSearching}
-            >
-              {isAiSearching ? 'Thinking...' : 'Ask AI'}
-            </button>
-          </div>
-          {aiError && <p className="text-red-500 mt-2">{aiError}</p>}
+      )}
+      
+      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
+        <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">AI Lore Search</h2>
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={aiQuery}
+            onChange={(e) => setAiQuery(e.target.value)}
+            placeholder="Ask AI about the lore"
+            className="flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+          />
+          <button 
+            onClick={handleAiSearch} 
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
+            disabled={isAiSearching}
+          >
+            {isAiSearching ? 'Thinking...' : 'Ask AI'}
+          </button>
         </div>
-        
-        {isSearching && (
-          <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">Search Results</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {searchResults.map((entry) => renderLoreEntry(entry, true))}
-            </div>
-          </div>
-        )}
-        
-        {aiResponse && (
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
-            <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">AI Response</h2>
-            <p className="text-gray-700 dark:text-gray-300">{aiResponse}</p>
-          </div>
-        )}
-        
-        {!isSearching && (
-          <div>
-            <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">All Lore Entries</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {loreEntries.map((entry) => renderLoreEntry(entry))}
-            </div>
-          </div>
-        )}
-  
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <motion.div 
-              className="bg-white dark:bg-gray-800 p-8 rounded-xl max-w-md w-full"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <h2 className="text-2xl font-bold mb-4 text-indigo-900 dark:text-indigo-300">Confirm Deletion</h2>
-              <p className="mb-6 text-gray-700 dark:text-gray-300">Are you sure you want to delete this entry?</p>
-              <div className="flex justify-end gap-4">
-                <motion.button 
-                  onClick={handleDelete} 
-                  className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Yes, Delete
-                </motion.button>
-                <motion.button 
-                  onClick={() => setShowDeleteModal(false)} 
-                  className="px-4 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Cancel
-                </motion.button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+        {aiError && <p className="text-red-500 mt-2">{aiError}</p>}
       </div>
-      <div ref={bottomRef} />
+      
+      {aiResponse && (
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
+          <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">AI Response</h2>
+          <p className="text-gray-700 dark:text-gray-300">{aiResponse}</p>
+        </div>
+      )}
+      
+      {user.role === 'ADMIN' && (
+        <>
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
+            <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Search Lore</h2>
+            <div className="flex gap-4">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (e.target.value === '') {
+                    setIsSearching(false);
+                    setSearchResults([]);
+                  }
+                }}
+                placeholder="Search Lore"
+                className="flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              />
+              <button 
+                onClick={handleSearch} 
+                className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
+              >
+                Search
+              </button>
+            </div>
+          </div>
+
+          {isSearching && (
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">Search Results</h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {searchResults.map((entry) => renderLoreEntry(entry, true))}
+              </div>
+            </div>
+          )}
+
+          {!isSearching && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">All Lore Entries</h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {loreEntries.map((entry) => renderLoreEntry(entry))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div 
+            className="bg-white dark:bg-gray-800 p-8 rounded-xl max-w-md w-full"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            <h2 className="text-2xl font-bold mb-4 text-indigo-900 dark:text-indigo-300">Confirm Deletion</h2>
+            <p className="mb-6 text-gray-700 dark:text-gray-300">Are you sure you want to delete this entry?</p>
+            <div className="flex justify-end gap-4">
+              <motion.button 
+                onClick={handleDelete} 
+                className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Yes, Delete
+              </motion.button>
+              <motion.button 
+                onClick={() => setShowDeleteModal(false)} 
+                className="px-4 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Cancel
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
-  );
+    <div ref={bottomRef} />
+  </div>
+);
 };
 
 export default TungraDashboard;

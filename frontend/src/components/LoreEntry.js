@@ -9,7 +9,12 @@ const LoreEntry = () => {
   useEffect(() => {
     const fetchEntry = async () => {
       try {
-        const response = await fetch(`/api/lore/${id}`);
+        const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+
+        const response = await fetch(`/api/lore/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+        }});
         const data = await response.json();
         setEntry(data);
       } catch (error) {

@@ -20,7 +20,14 @@ const LoreEntryPage = () => {
 
   const fetchLoreEntry = async () => {
     try {
-      const response = await fetch(`/api/lore/${id}`);
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+
+      const response = await fetch(`/api/lore/${id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       const data = await response.json();
       setEntry(data);
       setEditTitle(data.original_title);
@@ -32,9 +39,13 @@ const LoreEntryPage = () => {
 
   const handleEdit = async () => {
     try {
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+
       const response = await fetch(`/api/lore/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ title: editTitle, description: editDescription }),
       });
       if (response.ok) {
@@ -48,8 +59,13 @@ const LoreEntryPage = () => {
 
   const handleDelete = async () => {
     try {
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+
       const response = await fetch(`/api/lore/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         navigate('/');

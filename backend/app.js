@@ -4,10 +4,12 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import loreRoutes from './routes/lore.js';
-import aiSearchRoutes from './routes/aiSearch.js';  // Import the new AI search routes
-
 import fs from 'fs';
+
+import loreRoutes from './routes/lore.js';
+import aiSearchRoutes from './routes/aiSearch.js';
+import userRoutes from './routes/user.js';  // Import the new user routes
+import { auth } from './middleware/auth.js';  // Import the auth middleware
 
 dotenv.config();
 
@@ -45,8 +47,9 @@ mongoose.connect(process.env.MONGO_URI, {
 .catch(err => console.error('Could not connect to MongoDB', err));
 
 // Use routes
-app.use('/api/lore', loreRoutes);
-app.use('/api', aiSearchRoutes);  // Use the new AI search routes
+app.use('/api/users', userRoutes);  // New user routes (for login, etc.)
+app.use('/api/lore', auth, loreRoutes);  // Protect lore routes
+app.use('/api/ai-search', auth, aiSearchRoutes);  // Protect AI search routes
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.

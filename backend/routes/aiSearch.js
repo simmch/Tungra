@@ -25,7 +25,7 @@ async function generateEmbedding(text) {
   }
 }
 
-router.post('/ai-search', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
       const { query } = req.body;
       
