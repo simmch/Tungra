@@ -15,6 +15,9 @@ const Navbar = ({ user }) => {
           <ThemeToggle />
         </div>
         <div className="flex items-center space-x-4">
+          <span className="text-sm font-medium">
+            Welcome, {user.isGuest ? 'Guest' : user.username}
+          </span>
           {user.role === 'ADMIN' && (
             <button
               onClick={() => navigate('/user-management')}
