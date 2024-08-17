@@ -38,7 +38,7 @@ router.post('/', async (req, res) => {
             path: "plot_embedding_hf",
             queryVector: queryEmbedding,
             numCandidates: 150,
-            limit: 5
+            limit: 15
           }
         },
         {

@@ -31,7 +31,18 @@ router.post('/login', async (req, res) => {
     }
   });
 
-router.post('/users', auth, authorize(['ADMIN']), async (req, res) => {
+// Get all users (admin only)
+router.get('/', auth, authorize(['ADMIN']), async (req, res) => {
+  try {
+    const users = await User.find({}, '-password');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Create a new user (admin only)
+router.post('/', auth, authorize(['ADMIN']), async (req, res) => {
   try {
     const user = new User(req.body);
     await user.save();
@@ -41,13 +52,36 @@ router.post('/users', auth, authorize(['ADMIN']), async (req, res) => {
   }
 });
 
-router.get('/users', auth, authorize(['ADMIN']), async (req, res) => {
+// Update a user (admin only)
+router.put('/:id', auth, authorize(['ADMIN']), async (req, res) => {
   try {
-    const users = await User.find({}, '-password');
-    res.json(users);
+    const { username, password, role } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (username) user.username = username;
+    if (password) user.password = password;
+    if (role) user.role = role;
+    await user.save();
+    res.json({ message: 'User updated successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Delete a user (admin only)
+router.delete('/:id', auth, authorize(['ADMIN']), async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 export default router;

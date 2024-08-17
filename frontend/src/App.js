@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import TungraDashboard from './components/TungraDashboard';
 import LoreEntryPage from './components/LoreEntryPage';
+import UserManagement from './components/UserManagement';
 import Login from './components/Login';
 import { ThemeProvider } from './ThemeContext';
 import ThemeToggle from './ThemeToggle';
@@ -31,15 +32,7 @@ function App() {
     <ThemeProvider>
       <Router>
         <div className="App bg-white dark:bg-gray-900 min-h-screen transition-colors duration-200">
-          <ThemeToggle />
-          {user && (
-            <button 
-              onClick={handleLogout}
-              className="fixed top-4 right-16 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors duration-200"
-            >
-              Logout
-            </button>
-          )}
+          {/* <ThemeToggle /> */}
           <Routes>
             <Route 
               path="/login" 
@@ -47,11 +40,19 @@ function App() {
             />
             <Route 
               path="/" 
-              element={user ? <TungraDashboard user={user} /> : <Navigate to="/login" replace />} 
+              element={user ? <TungraDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />} 
             />
             <Route 
               path="/lore/:id" 
-              element={user ? <LoreEntryPage user={user} /> : <Navigate to="/login" replace />} 
+              element={user ? <LoreEntryPage user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />} 
+            />
+            <Route 
+              path="/user-management" 
+              element={
+                user && user.role === 'ADMIN' ? 
+                <UserManagement user={user} onLogout={handleLogout} /> : 
+                <Navigate to="/" replace />
+              } 
             />
           </Routes>
         </div>
