@@ -263,68 +263,15 @@ const TungraDashboard = ({ user, onLogout  }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-gray-800 dark:to-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-gray-900 text-white">
       <Navbar user={user} onLogout={onLogout} />
       <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div ref={topRef} />
-        <div className="fixed bottom-4 right-4 flex flex-col space-y-2 z-10">
-          <button
-            onClick={scrollToTop}
-            className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
-            aria-label="Scroll to top"
-          >
-            ↑
-          </button>
-          <button
-            onClick={scrollToBottom}
-            className="bg-indigo-500 text-white p-2 rounded-full hover:bg-indigo-600 transition-colors duration-300"
-            aria-label="Scroll to bottom"
-          >
-            ↓
-          </button>
-        </div>
-        
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-extrabold text-center text-indigo-900 dark:text-indigo-300 mb-12">Tungra Lore Dashboard</h1>
-          <AnimatePresence>
-            {showNotification && (
-              <motion.div
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -50 }}
-                className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg"
-              >
-                Lore entry added successfully!
-              </motion.div>
-            )}
-          </AnimatePresence>
-          {(user.role === 'ADMIN' || user.role === 'EDITOR') && (
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
-              <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Add New Lore</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <input
-                  type="text"
-                  value={newLoreTitle}
-                  onChange={(e) => setNewLoreTitle(e.target.value)}
-                  placeholder="Lore Title"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                />
-                <textarea
-                  value={newLoreDescription}
-                  onChange={(e) => setNewLoreDescription(e.target.value)}
-                  placeholder="Lore Description"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  rows={4}
-                />
-                <button type="submit" className="w-full py-3 px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300">
-                  Add New Lore
-                </button>
-              </form>
-            </div>
-          )}
+          <h1 className="text-4xl font-extrabold text-center text-indigo-300 mb-12">Tungra Lore Dashboard</h1>
           
+          {/* AI Lore Search - available for all users including guests */}
           <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
-            <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">AI Lore Search</h2>
+            <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Tungra Lore Search</h2>
             <div className="flex gap-4">
               <input
                 type="text"
@@ -350,50 +297,78 @@ const TungraDashboard = ({ user, onLogout  }) => {
               <p className="text-gray-700 dark:text-gray-300">{aiResponse}</p>
             </div>
           )}
-          
-          {user.role === 'ADMIN' && (
-            <>
-              <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
-                <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Search Lore</h2>
-                <div className="flex gap-4">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      if (e.target.value === '') {
-                        setIsSearching(false);
-                        setSearchResults([]);
-                      }
-                    }}
-                    placeholder="Search Lore"
-                    className="flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  />
-                  <button 
-                    onClick={handleSearch} 
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
-                  >
-                    Search
-                  </button>
-                </div>
-              </div>
   
-              {isSearching && (
-                <div className="mb-12">
-                  <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">Search Results</h2>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {searchResults.map((entry) => renderLoreEntry(entry, true))}
-                  </div>
+          {/* Only show these sections for non-guest users */}
+          {!user.isGuest && (
+            <>
+              {(user.role === 'ADMIN' || user.role === 'EDITOR') && (
+                <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
+                  <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Add New Lore</h2>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <input
+                      type="text"
+                      value={newLoreTitle}
+                      onChange={(e) => setNewLoreTitle(e.target.value)}
+                      placeholder="Lore Title"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                    <textarea
+                      value={newLoreDescription}
+                      onChange={(e) => setNewLoreDescription(e.target.value)}
+                      placeholder="Lore Description"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      rows={4}
+                    />
+                    <button type="submit" className="w-full py-3 px-6 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300">
+                      Add New Lore
+                    </button>
+                  </form>
                 </div>
               )}
   
-              {!isSearching && (
-                <div>
-                  <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">All Lore Entries</h2>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {loreEntries.map((entry) => renderLoreEntry(entry))}
+              {user.role === 'ADMIN' && (
+                <>
+                  <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
+                    <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Admin Search Lore Entries</h2>
+                    <div className="flex gap-4">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          if (e.target.value === '') {
+                            setIsSearching(false);
+                            setSearchResults([]);
+                          }
+                        }}
+                        placeholder="Search Lore"
+                        className="flex-grow p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                      <button 
+                        onClick={handleSearch} 
+                        className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
+                      >
+                        Search
+                      </button>
+                    </div>
                   </div>
-                </div>
+  
+                  {isSearching ? (
+                    <div className="mb-12">
+                      <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">Search Results</h2>
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {searchResults.map((entry) => renderLoreEntry(entry, true))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <h2 className="text-3xl font-bold mb-6 text-indigo-900 dark:text-indigo-300">All Lore Entries</h2>
+                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {loreEntries.map((entry) => renderLoreEntry(entry))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
@@ -428,8 +403,20 @@ const TungraDashboard = ({ user, onLogout  }) => {
               </motion.div>
             </div>
           )}
+  
+          <AnimatePresence>
+            {showNotification && (
+              <motion.div
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg"
+              >
+                Lore entry added successfully!
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        <div ref={bottomRef} />
       </div>
     </div>
   );

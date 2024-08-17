@@ -8,7 +8,7 @@ import { ThemeProvider } from './ThemeContext';
 import ThemeToggle from './ThemeToggle';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({ role: 'USER', isGuest: true });
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -23,7 +23,7 @@ function App() {
   };
 
   const handleLogout = () => {
-    setUser(null);
+    setUser({ role: 'USER', isGuest: true });
     localStorage.removeItem('user');
     localStorage.removeItem('token');
   };
@@ -32,25 +32,24 @@ function App() {
     <ThemeProvider>
       <Router>
         <div className="App bg-white dark:bg-gray-900 min-h-screen transition-colors duration-200">
-          {/* <ThemeToggle /> */}
           <Routes>
             <Route 
               path="/login" 
-              element={user ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />} 
+              element={<Login onLogin={handleLogin} />} 
             />
             <Route 
               path="/" 
-              element={user ? <TungraDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />} 
+              element={<TungraDashboard user={user} onLogout={handleLogout} />} 
             />
             <Route 
               path="/lore/:id" 
-              element={user ? <LoreEntryPage user={user} onLogout={handleLogout} /> : <Navigate to="/login" replace />} 
+              element={<LoreEntryPage user={user} onLogout={handleLogout} />} 
             />
             <Route 
               path="/user-management" 
               element={
-                user && user.role === 'ADMIN' ? 
-                <UserManagement user={user} onLogout={handleLogout} /> : 
+                user.role === 'ADMIN' ? 
+                <UserManagement /> : 
                 <Navigate to="/" replace />
               } 
             />

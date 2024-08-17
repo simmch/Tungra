@@ -49,7 +49,7 @@ mongoose.connect(process.env.MONGO_URI, {
 // Use routes
 app.use('/api/users', userRoutes);  // New user routes (for login, etc.)
 app.use('/api/lore', auth, loreRoutes);  // Protect lore routes
-app.use('/api/ai-search', auth, aiSearchRoutes);  // Protect AI search routes
+app.use('/api/ai-search', aiSearchRoutes);  // Protect AI search routes
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
