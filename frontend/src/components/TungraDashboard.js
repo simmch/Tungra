@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate  } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence  } from 'framer-motion';
 import axios from 'axios';
 import Navbar from './Navbar'; // Import the new Navbar component
 
@@ -24,6 +24,8 @@ const TungraDashboard = ({ user, onLogout  }) => {
   const topRef = useRef(null);
   const bottomRef = useRef(null);
   const navigate = useNavigate();
+  const [showNotification, setShowNotification] = useState(false);
+
 
   
   const scrollToTop = () => topRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -105,6 +107,8 @@ const TungraDashboard = ({ user, onLogout  }) => {
         setNewLoreTitle('');
         setNewLoreDescription('');
         fetchLoreEntries(); // Refresh the list
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000); // Hide notification after 3 seconds
       }
     } catch (error) {
       console.error('Error adding new lore entry:', error);
@@ -282,7 +286,18 @@ const TungraDashboard = ({ user, onLogout  }) => {
         
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-extrabold text-center text-indigo-900 dark:text-indigo-300 mb-12">Tungra Lore Dashboard</h1>
-          
+          <AnimatePresence>
+            {showNotification && (
+              <motion.div
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg"
+              >
+                Lore entry added successfully!
+              </motion.div>
+            )}
+          </AnimatePresence>
           {(user.role === 'ADMIN' || user.role === 'EDITOR') && (
             <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg mb-12">
               <h2 className="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-300">Add New Lore</h2>
