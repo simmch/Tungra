@@ -98,7 +98,7 @@ const TungraDashboard = ({ user, onLogout  }) => {
         body: JSON.stringify({
           title: newLoreTitle,
           description: newLoreDescription,
-          writer: 'Dashboard User', // You might want to implement user authentication
+          writer: user.username, // You might want to implement user authentication
         })
       });
       if (response.ok) {
