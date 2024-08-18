@@ -49,7 +49,7 @@ function App() {
               path="/user-management" 
               element={
                 user.role === 'ADMIN' ? 
-                <UserManagement /> : 
+                <UserManagement user={user} /> : 
                 <Navigate to="/" replace />
               } 
             />
