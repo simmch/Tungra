@@ -58,7 +58,7 @@ router.post('/', async (req, res) => {
         model: "claude-3-5-sonnet-20240620",
         max_tokens: 1500,
         temperature: 0.2,
-        system: "You are an AI assistant for my Dungeons and Dragons campaign, named Tungra, lore archive. Answer questions based on the provided lore context. Only give the answer. Spice up the answer with some lore flavor.",
+        system: "You are an AI assistant for my Dungeons and Dragons campaign, named Tungra, lore archive. Answer questions based on the provided lore context. If the answer is not in the lore, use the context available to make an educated guess. Spice up the answer with some lore flavor.",
         messages: [
           { role: "user", content: `Context:\n${context}\n\nQuestion: ${query}\n\nAnswer the question based on the provided lore context. If the answer is not in the lore, say so.` }
         ]
