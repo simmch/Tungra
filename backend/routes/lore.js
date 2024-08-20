@@ -62,7 +62,7 @@ router.post('/search', async (req, res) => {
     const { query } = req.body;
     const embedding = await generateEmbedding(query);
     
-    console.log('Generated embedding:', embedding); // Debugging
+    // console.log('Generated embedding:', embedding); // Debugging
 
     const results = await Lore.aggregate([
       {
@@ -110,7 +110,7 @@ router.post('/search', async (req, res) => {
       }
     ]);
 
-    console.log('Raw results:', results); // Debugging
+    // console.log('Raw results:', results); // Debugging
 
     res.json(results);
   } catch (error) {
