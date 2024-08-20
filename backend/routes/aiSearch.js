@@ -33,23 +33,50 @@ router.post('/', async (req, res) => {
   
       const relevantLore = await Lore.aggregate([
         {
-          $vectorSearch: {
-            index: "DndSemanticSearch",
-            path: "plot_embedding_hf",
-            queryVector: queryEmbedding,
-            numCandidates: 150,
-            limit: 15
+          $addFields: {
+            similarity: {
+              $sqrt: {
+                $reduce: {
+                  input: { $zip: { inputs: ["$plot_embedding_hf", queryEmbedding] } },
+                  initialValue: 0,
+                  in: {
+                    $add: ["$$value", { $pow: [{ $subtract: [{ $arrayElemAt: ["$$this", 0] }, { $arrayElemAt: ["$$this", 1] }] }, 2] }]
+                  }
+                }
+              }
+            }
           }
         },
         {
+          $match: {
+            $or: [
+              { original_title: { $regex: query, $options: 'i' } },
+              { original_description: { $regex: query, $options: 'i' } },
+              { title: { $regex: query, $options: 'i' } },
+              { description: { $regex: query, $options: 'i' } }
+            ]
+          }
+        },
+        {
+          $sort: { similarity: 1 }
+        },
+        {
+          $limit: 25
+        },
+        {
           $project: {
+            _id: 1,
             original_title: 1,
             original_description: 1,
-            score: { $meta: "vectorSearchScore" }
+            title: 1,
+            description: 1,
+            writer: 1,
+            timestamp: 1,
+            similarity: 1
           }
         }
       ]);
-  
+
       const context = relevantLore.map(entry => 
         `${entry.original_title}: ${entry.original_description.substring(0, 500)}...`
       ).join('\n\n');
@@ -58,7 +85,7 @@ router.post('/', async (req, res) => {
         model: "claude-3-5-sonnet-20240620",
         max_tokens: 1500,
         temperature: 0.2,
-        system: "You are an AI assistant for my Dungeons and Dragons campaign, named Tungra, lore archive. Answer questions based on the provided lore context. If the answer is not in the lore, use the context available to make an educated guess. Spice up the answer with some lore flavor.",
+        system: "You are an AI assistant for my Dungeons and Dragons campaign, named Tungra, lore archive. Answer questions based on the provided lore context. Only give the answer. Spice up the answer with some lore flavor.",
         messages: [
           { role: "user", content: `Context:\n${context}\n\nQuestion: ${query}\n\nAnswer the question based on the provided lore context. If the answer is not in the lore, say so.` }
         ]

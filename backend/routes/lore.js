@@ -61,22 +61,61 @@ router.post('/search', async (req, res) => {
   try {
     const { query } = req.body;
     const embedding = await generateEmbedding(query);
+    
+    console.log('Generated embedding:', embedding); // Debugging
 
     const results = await Lore.aggregate([
       {
-        $vectorSearch: {
-          queryVector: embedding,
-          path: "plot_embedding_hf",
-          numCandidates: 100,
-          limit: 10,
-          index: "DndSemanticSearch",
+        $addFields: {
+          similarity: {
+            $sqrt: {
+              $reduce: {
+                input: { $zip: { inputs: ["$plot_embedding_hf", embedding] } },
+                initialValue: 0,
+                in: {
+                  $add: ["$$value", { $pow: [{ $subtract: [{ $arrayElemAt: ["$$this", 0] }, { $arrayElemAt: ["$$this", 1] }] }, 2] }]
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        $match: {
+          $or: [
+            { original_title: { $regex: query, $options: 'i' } },
+            { original_description: { $regex: query, $options: 'i' } },
+            { title: { $regex: query, $options: 'i' } },
+            { description: { $regex: query, $options: 'i' } }
+          ]
+        }
+      },
+      {
+        $sort: { similarity: 1 }
+      },
+      {
+        $limit: 25
+      },
+      {
+        $project: {
+          _id: 1,
+          original_title: 1,
+          original_description: 1,
+          title: 1,
+          description: 1,
+          writer: 1,
+          timestamp: 1,
+          similarity: 1
         }
       }
     ]);
 
+    console.log('Raw results:', results); // Debugging
+
     res.json(results);
   } catch (error) {
-    res.status(500).json({ message: 'Error performing search', error: error.message });
+    console.error('Search error:', error);
+    res.status(500).json({ message: 'Error performing search', error: error.toString() });
   }
 });
 
@@ -142,8 +181,8 @@ router.post('/ai-search', async (req, res) => {
           index: "DndSemanticSearch",
           path: "plot_embedding_hf",
           queryVector: queryEmbedding,
-          numCandidates: 100,
-          limit: 5
+          numCandidates: 150,
+          limit: 25
         }
       },
       {
